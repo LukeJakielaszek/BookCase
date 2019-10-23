@@ -1,3 +1,18 @@
 <resources>
     <string name="app_name">BookCase</string>
+    <string-array name="book_list">
+        <item>The Guardians</item>
+        <item>Cursed</item>
+        <item>Huckelberry Finn</item>
+        <item>A Higher Power</item>
+        <item>Ranger's Apprentice</item>
+        <item>Harry Potter and the Goblet of Fire</item>
+        <item>Coraline</item>
+        <item>Death Race</item>
+        <item>Hunger Games</item>
+        <item>Lord of the Rings</item>
+    </string-array>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
