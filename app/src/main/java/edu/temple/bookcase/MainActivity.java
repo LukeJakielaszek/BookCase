@@ -12,6 +12,8 @@ import java.util.Arrays;
 
 public class MainActivity extends AppCompatActivity implements BookListFragment.BookListSelectedListener{
     BookListFragment bookListFragment;
+    BookDetailsFragment bookDetailsFragment;
+    ArrayList<String> bookList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -20,16 +22,19 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
 
         Log.d("arraylist", "Grabbing book list");
         String[] books = getResources().getStringArray(R.array.book_list);
-        ArrayList<String> bookList = new ArrayList<>(Arrays.asList(books));
+        bookList = new ArrayList<>(Arrays.asList(books));
 
         Log.d("arraylist", "Initialized BookList");
 
         bookListFragment = BookListFragment.newInstance(bookList);
+        bookDetailsFragment = BookDetailsFragment.newInstance(bookList.get(0));
 
         FragmentManager fragmentManager = getSupportFragmentManager();
 
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction()
-                .replace(R.id.frameLayout, bookListFragment);
+                .replace(R.id.frameLayout, bookListFragment)
+                .replace(R.id.framelayout2, bookDetailsFragment);
+
         fragmentTransaction.commit();
 
     }
@@ -37,5 +42,6 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
     @Override
     public void BookListSelected(int index) {
         Log.d("Interface", Integer.toString(index));
+        bookDetailsFragment.displayBook(bookList.get(index));
     }
 }
