@@ -23,7 +23,7 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
 
         Log.d("MyApplication", "Grabbing book list");
 
-        singlePane = findViewById(R.id.frameLayout2) == null;
+        singlePane = findViewById(R.id.frameLayoutRight) == null;
 
         Log.d("MyApplication", "Grabbing book list");
         String[] books = getResources().getStringArray(R.array.book_list);
@@ -34,23 +34,25 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
 
 
         if(singlePane){
+            Log.d("MyApplication", "single_pane");
             PagerFragment pf = PagerFragment.newInstance(bookList);
 
             FragmentManager fragmentManager = getSupportFragmentManager();
 
             FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction()
-                    .replace(R.id.frameLayout1, pf);
+                    .replace(R.id.frameLayoutLeft, pf);
 
             fragmentTransaction.commit();
         }else{
+            Log.d("MyApplication", "Multi_pane");
             bookListFragment = BookListFragment.newInstance(bookList);
             bookDetailsFragment = BookDetailsFragment.newInstance(bookList.get(0));
 
             FragmentManager fragmentManager = getSupportFragmentManager();
 
             FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction()
-                    .replace(R.id.frameLayout1, bookListFragment)
-                    .replace(R.id.frameLayout2, bookDetailsFragment);
+                    .replace(R.id.frameLayoutLeft, bookListFragment)
+                    .replace(R.id.frameLayoutRight, bookDetailsFragment);
 
             fragmentTransaction.commit();
         }
