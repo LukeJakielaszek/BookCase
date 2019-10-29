@@ -32,8 +32,8 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
         FragmentManager fragmentManager = getSupportFragmentManager();
 
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction()
-                .replace(R.id.frameLayout, bookListFragment)
-                .replace(R.id.framelayout2, bookDetailsFragment);
+                .replace(R.id.frameLayout1, bookListFragment)
+                .replace(R.id.frameLayout2, bookDetailsFragment);
 
         fragmentTransaction.commit();
 
