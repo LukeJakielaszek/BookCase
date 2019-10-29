@@ -14,28 +14,44 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
     BookListFragment bookListFragment;
     BookDetailsFragment bookDetailsFragment;
     ArrayList<String> bookList;
+    boolean singlePane;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        singlePane = findViewById(R.id.frameLayout2) == null;
+
         Log.d("arraylist", "Grabbing book list");
         String[] books = getResources().getStringArray(R.array.book_list);
         bookList = new ArrayList<>(Arrays.asList(books));
 
+
         Log.d("arraylist", "Initialized BookList");
 
-        bookListFragment = BookListFragment.newInstance(bookList);
-        bookDetailsFragment = BookDetailsFragment.newInstance(bookList.get(0));
 
-        FragmentManager fragmentManager = getSupportFragmentManager();
+        if(singlePane){
+            PagerFragment pf = PagerFragment.newInstance(bookList);
 
-        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction()
-                .replace(R.id.frameLayout1, bookListFragment)
-                .replace(R.id.frameLayout2, bookDetailsFragment);
+            FragmentManager fragmentManager = getSupportFragmentManager();
 
-        fragmentTransaction.commit();
+            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction()
+                    .replace(R.id.frameLayout1, pf);
+
+            fragmentTransaction.commit();
+        }else{
+            bookListFragment = BookListFragment.newInstance(bookList);
+            bookDetailsFragment = BookDetailsFragment.newInstance(bookList.get(0));
+
+            FragmentManager fragmentManager = getSupportFragmentManager();
+
+            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction()
+                    .replace(R.id.frameLayout1, bookListFragment)
+                    .replace(R.id.frameLayout2, bookDetailsFragment);
+
+            fragmentTransaction.commit();
+        }
 
     }
 
