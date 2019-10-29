@@ -21,14 +21,16 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        Log.d("MyApplication", "Grabbing book list");
+
         singlePane = findViewById(R.id.frameLayout2) == null;
 
-        Log.d("arraylist", "Grabbing book list");
+        Log.d("MyApplication", "Grabbing book list");
         String[] books = getResources().getStringArray(R.array.book_list);
         bookList = new ArrayList<>(Arrays.asList(books));
 
 
-        Log.d("arraylist", "Initialized BookList");
+        Log.d("MyApplication", "Initialized BookList");
 
 
         if(singlePane){
@@ -57,7 +59,7 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
 
     @Override
     public void BookListSelected(int index) {
-        Log.d("Interface", Integer.toString(index));
+        Log.d("MyApplication", Integer.toString(index));
         bookDetailsFragment.displayBook(bookList.get(index));
     }
 }
