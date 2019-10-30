@@ -43,6 +43,16 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
                     .replace(R.id.frameLayoutLeft, pf);
 
             fragmentTransaction.commit();
+
+            PagerFragment pf2 = PagerFragment.newInstance(bookList);
+            FragmentManager fragmentManager2 = getSupportFragmentManager();
+
+            FragmentTransaction fragmentTransaction2 = fragmentManager2.beginTransaction()
+                    .replace(R.id.frameLayoutLeft, pf2);
+
+            fragmentTransaction2.commit();
+
+
         }else{
             Log.d("MyApplication", "Multi_pane");
             bookListFragment = BookListFragment.newInstance(bookList);

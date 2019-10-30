@@ -93,12 +93,12 @@ public class PagerFragment extends Fragment {
         @NonNull
         @Override
         public Fragment getItem(int position) {
-            return fragments.get(position % fragments.size());
+            return fragments.get(position);
         }
 
         @Override
         public int getCount() {
-            return fragments.size()+4;
+            return fragments.size();
         }
     }
 
