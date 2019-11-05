@@ -26,22 +26,41 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
     BookListFragment bookListFragment;
     BookDetailsFragment bookDetailsFragment;
     ArrayList<String> bookList;
+    ArrayList<Book> books;
     boolean singlePane;
 
     Handler handler = new Handler(new Handler.Callback() {
         @Override
         public boolean handleMessage(@NonNull Message message) {
             try{
-                Log.d("MyApplication", message.obj.toString());
+                Log.d("MyApplication", "Obtaining booklist");
+                // obtain json api and convert to json array
                 JSONArray webPage = new JSONArray(message.obj.toString());
 
-                JSONObject book_web = new JSONObject(webPage.getJSONObject(2).toString());
-                Log.d("MyApplication", book_web.getString("author"));
+                // instantiate array
+                books = new ArrayList<>(webPage.length());
+
+                // get contents of each object in array
+                for(int i = 0; i < webPage.length(); i++){
+                    // get the individual book contents
+                    JSONObject book_web = new JSONObject(webPage.getJSONObject(i).toString());
+
+                    // parse book information
+                    int id = book_web.getInt("book_id");
+                    String title = book_web.getString("title");
+                    String author = book_web.getString("author");
+                    int published = book_web.getInt("published");
+                    String cover_url = book_web.getString("cover_url");
+
+                    // add our object to the booklist
+                    books.add(new Book(id, title, author, published, cover_url));
+                }
 
             }catch (JSONException e){
                 e.printStackTrace();
             }
 
+            Log.d("MyApplication", "booklist obtained");
             return false;
         }
     });
@@ -71,7 +90,6 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
                         response = reader.readLine();
                     }
 
-                    Log.d("MyApplication", builder.toString());
                     Message message = Message.obtain();
                     message.obj = builder.toString();
 

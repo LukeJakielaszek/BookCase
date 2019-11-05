@@ -26,6 +26,26 @@ public class Book implements Parcelable {
         coverURL = in.readString();
     }
 
+    public int getPublished() {
+        return published;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public String getAuthor() {
+        return author;
+    }
+
+    public String getCoverURL() {
+        return coverURL;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
     public static final Creator<Book> CREATOR = new Creator<Book>() {
         @Override
         public Book createFromParcel(Parcel in) {
