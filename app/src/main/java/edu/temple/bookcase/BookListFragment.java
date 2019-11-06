@@ -22,23 +22,23 @@ import java.util.ArrayList;
  * A simple {@link Fragment} subclass.
  */
 public class BookListFragment extends Fragment {
-    private ArrayList<String> bookList;
+    private ArrayList<Book> bookList;
     private ListView listView;
 
     BookListSelectedListener parent;
 
-    public static final String BOOK_LIST_KEY = "book_list";
+    public static final String BOOK_KEY = "book";
 
     public BookListFragment() {
         // Required empty public constructor
     }
 
-    public static BookListFragment newInstance(ArrayList<String> bookList){
+    public static BookListFragment newInstance(ArrayList<Book> bookList){
         BookListFragment bookListFragment = new BookListFragment();
 
         // set our book list array
         Bundle bundle = new Bundle();
-        bundle.putStringArrayList(BOOK_LIST_KEY, bookList);
+        bundle.putParcelableArrayList(BOOK_KEY, bookList);
         bookListFragment.setArguments(bundle);
 
         return bookListFragment;
@@ -61,7 +61,7 @@ public class BookListFragment extends Fragment {
 
         // get our book list array
         if(getArguments() != null){
-            this.bookList = getArguments().getStringArrayList(BOOK_LIST_KEY);
+            this.bookList = getArguments().getParcelableArrayList(BOOK_KEY);
         }
     }
 

@@ -9,10 +9,10 @@ import android.widget.TextView;
 import java.util.ArrayList;
 
 public class BookListAdapter extends BaseAdapter {
-    ArrayList<String> bookList;
+    ArrayList<Book> bookList;
     Context context;
 
-    public BookListAdapter(Context context, ArrayList<String> bookList){
+    public BookListAdapter(Context context, ArrayList<Book> bookList){
         this.bookList = bookList;
         this.context = context;
     }
@@ -41,7 +41,7 @@ public class BookListAdapter extends BaseAdapter {
             textView = new TextView(context);
         }
 
-        textView.setText(this.getItem(i).toString());
+        textView.setText(((Book)this.getItem(i)).getTitle());
 
         return textView;
     }

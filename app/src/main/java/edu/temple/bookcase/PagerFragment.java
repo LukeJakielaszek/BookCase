@@ -11,6 +11,7 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentStatePagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,21 +26,21 @@ public class PagerFragment extends Fragment {
     private ViewPager viewPager;
     private ArrayList fragments;
     private MyViewPagerAdapter myViewPagerAdapter;
-    private ArrayList<String> bookList;
+    private ArrayList<Book> bookList;
 
 
-    public static final String BOOK_LIST_KEY = "book_list";
+    public static final String BOOK_KEY = "book";
 
     public PagerFragment() {
         // Required empty public constructor
     }
 
-    public static PagerFragment newInstance(ArrayList<String> bookList){
+    public static PagerFragment newInstance(ArrayList<Book> bookList){
         PagerFragment pf = new PagerFragment();
 
         // set our book list array
         Bundle bundle = new Bundle();
-        bundle.putStringArrayList(BOOK_LIST_KEY, bookList);
+        bundle.putParcelableArrayList(BOOK_KEY, bookList);
         pf.setArguments(bundle);
 
         return pf;
@@ -56,7 +57,7 @@ public class PagerFragment extends Fragment {
 
         // get our book list array
         if(getArguments() != null){
-            this.bookList = getArguments().getStringArrayList(BOOK_LIST_KEY);
+            this.bookList = getArguments().getParcelableArrayList(BOOK_KEY);
         }
     }
 
@@ -68,10 +69,15 @@ public class PagerFragment extends Fragment {
 
         fragments = new ArrayList<BookDetailsFragment>();
 
-        for(String baseTitle : this.bookList){
-            fragments.add(BookDetailsFragment.newInstance(baseTitle));
+        for(int i = 0; i < this.bookList.size(); i++){
+            fragments.add(BookDetailsFragment.newInstance(this.bookList.get(i)));
         }
 
+        /*
+        for(Book book : this.bookList){
+            fragments.add(BookDetailsFragment.newInstance(book));
+        }
+        */
         viewPager = v.findViewById(R.id.viewPager);
 
         myViewPagerAdapter = new MyViewPagerAdapter(getFragmentManager(), fragments);

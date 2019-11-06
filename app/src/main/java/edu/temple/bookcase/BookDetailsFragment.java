@@ -16,20 +16,21 @@ import android.widget.TextView;
  * A simple {@link Fragment} subclass.
  */
 public class BookDetailsFragment extends Fragment {
-    String bookTitle;
+    Book book;
     TextView textView;
 
-    public static final String BOOK_TITLE_KEY = "book_title";
+    public static final String BOOK_KEY = "book";
 
     public BookDetailsFragment() {
         // Required empty public constructor
     }
 
-    public static BookDetailsFragment newInstance(String title){
+    public static BookDetailsFragment newInstance(Book book){
         BookDetailsFragment bookDetailsFragment = new BookDetailsFragment();
+
         // set our default book title
         Bundle bundle = new Bundle();
-        bundle.putString(BOOK_TITLE_KEY, title);
+        bundle.putParcelable(BOOK_KEY, book);
         bookDetailsFragment.setArguments(bundle);
 
         return bookDetailsFragment;
@@ -41,7 +42,7 @@ public class BookDetailsFragment extends Fragment {
 
         // get our book list array
         if(getArguments() != null){
-            this.bookTitle = getArguments().getString(BOOK_TITLE_KEY);
+            this.book = getArguments().getParcelable(BOOK_KEY);
         }
     }
 
@@ -51,10 +52,9 @@ public class BookDetailsFragment extends Fragment {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_book_details, container, false);
 
-        textView = v.findViewById(R.id.textView);
-        textView.setText(this.bookTitle);
-        textView.setTextSize(32);
+        textView = v.findViewById(R.id.bookTitle);
 
+        displayBook(this.book.getTitle());
 
         return v;
     }
