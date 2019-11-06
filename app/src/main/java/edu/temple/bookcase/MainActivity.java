@@ -136,8 +136,7 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
     @Override
     public void BookListSelected(int index) {
         Log.d("MyApplication", Integer.toString(index));
-        String title = bookList.get(index).getTitle();
 
-        bookDetailsFragment.displayBook(title);
+        bookDetailsFragment.displayBook(bookList.get(index));
     }
 }

@@ -17,7 +17,9 @@ import android.widget.TextView;
  */
 public class BookDetailsFragment extends Fragment {
     Book book;
-    TextView textView;
+    TextView titleTextView;
+    TextView authorTextView;
+    TextView publishedTextView;
 
     public static final String BOOK_KEY = "book";
 
@@ -52,15 +54,21 @@ public class BookDetailsFragment extends Fragment {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_book_details, container, false);
 
-        textView = v.findViewById(R.id.bookTitle);
+        titleTextView = v.findViewById(R.id.bookTitle);
+        authorTextView = v.findViewById(R.id.bookAuthor);
+        publishedTextView = v.findViewById(R.id.bookPublish);
 
-        displayBook(this.book.getTitle());
+        displayBook(this.book);
 
         return v;
     }
 
-    public void displayBook(String bookTitle){
-        textView.setText(bookTitle);
-        textView.setTextSize(32);
+    public void displayBook(Book book){
+        titleTextView.setText(book.getTitle());
+        titleTextView.setTextSize(32);
+
+        authorTextView.setText(book.getAuthor());
+
+        publishedTextView.setText(Integer.toString(book.getPublished()));
     }
 }
