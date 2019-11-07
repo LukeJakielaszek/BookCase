@@ -8,8 +8,8 @@
 
     <EditText
         android:id="@+id/bookSearch"
-        android:layout_width="413dp"
-        android:layout_height="44dp"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
         android:ems="10"
         android:inputType="textPersonName"
         android:text="@string/search"
