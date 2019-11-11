@@ -58,36 +58,8 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
             }
 
             Log.d("MyApplication", message.obj.toString());
-            Log.d("MyApplication", "booklist obtained");
 
-            MainActivity.this.singlePane = findViewById(R.id.frameLayoutRight) == null;
-
-            if(MainActivity.this.singlePane){
-                Log.d("MyApplication", "single_pane");
-                PagerFragment pf = PagerFragment.newInstance(MainActivity.this.bookList);
-
-                Log.d("MyApplication", "initialized pf");
-
-                FragmentManager fragmentManager = getSupportFragmentManager();
-
-                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction()
-                        .replace(R.id.frameLayoutLeft, pf);
-
-                fragmentTransaction.commit();
-                Log.d("MyApplication", "completed sp");
-            }else{
-                Log.d("MyApplication", "Multi_pane");
-                MainActivity.this.bookListFragment = BookListFragment.newInstance(MainActivity.this.bookList);
-                MainActivity.this.bookDetailsFragment = BookDetailsFragment.newInstance(MainActivity.this.bookList.get(0));
-
-                FragmentManager fragmentManager = getSupportFragmentManager();
-
-                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction()
-                        .replace(R.id.frameLayoutLeft, MainActivity.this.bookListFragment)
-                        .replace(R.id.frameLayoutRight, MainActivity.this.bookDetailsFragment);
-
-                fragmentTransaction.commit();
-            }
+            MainActivity.this.processFragments();
 
             Log.d("MyApplication", "Completed on create");
 
@@ -95,17 +67,46 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
         }
     });
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+    protected void processFragments(){
+        Log.d("MyApplication", "booklist obtained");
 
+        this.singlePane = findViewById(R.id.frameLayoutRight) == null;
+
+        if(this.singlePane){
+            Log.d("MyApplication", "single_pane");
+            PagerFragment pf = PagerFragment.newInstance(this.bookList);
+
+            Log.d("MyApplication", "initialized pf");
+
+            FragmentManager fragmentManager = getSupportFragmentManager();
+
+            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction()
+                    .replace(R.id.frameLayoutLeft, pf);
+
+            fragmentTransaction.commit();
+            Log.d("MyApplication", "completed sp");
+        }else{
+            Log.d("MyApplication", "Multi_pane");
+            this.bookListFragment = BookListFragment.newInstance(this.bookList);
+            this.bookDetailsFragment = BookDetailsFragment.newInstance(this.bookList.get(0));
+
+            FragmentManager fragmentManager = getSupportFragmentManager();
+
+            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction()
+                    .replace(R.id.frameLayoutLeft, this.bookListFragment)
+                    .replace(R.id.frameLayoutRight, this.bookDetailsFragment);
+
+            fragmentTransaction.commit();
+        }
+    }
+
+    protected void obtainWebData(final String urlString){
         Thread t = new Thread() {
             @Override
             public void run() {
                 URL url = null;
                 try {
-                    url = new URL("https://kamorris.com/lab/audlib/booksearch.php");
+                    url = new URL(urlString);
                     BufferedReader reader = null;
 
                     reader = new BufferedReader(new InputStreamReader(url.openStream()));
@@ -131,6 +132,17 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
         };
 
         t.start();
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        String urlString = "https://kamorris.com/lab/audlib/booksearch.php";
+        obtainWebData(urlString);
+
+
     }
 
     @Override
