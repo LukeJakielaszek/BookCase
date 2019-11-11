@@ -91,7 +91,11 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
         }else{
             Log.d("MyApplication", "Multi_pane");
             this.bookListFragment = BookListFragment.newInstance(this.bookList);
-            this.bookDetailsFragment = BookDetailsFragment.newInstance(this.bookList.get(0));
+
+            // initialize preview book image to first book in list
+            if(!this.bookList.isEmpty()) {
+                this.bookDetailsFragment = BookDetailsFragment.newInstance(this.bookList.get(0));
+            }
 
             FragmentTransaction fragmentTransaction = this.fragmentManager.beginTransaction()
                     .replace(R.id.frameLayoutLeft, this.bookListFragment, "MyFragment")
@@ -179,7 +183,13 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
                 String searchString = MainActivity.this.searchText.getText().toString();
                 Log.d("MyApplication", searchString);
 
-                String urlString = "https://kamorris.com/lab/audlib/booksearch.php?search=" + searchString;
+                String urlString;
+                if(searchString == null){
+                    urlString = "https://kamorris.com/lab/audlib/booksearch.php";
+                }else {
+                    urlString = "https://kamorris.com/lab/audlib/booksearch.php?search=" + searchString;
+                }
+
                 obtainWebData(urlString);
             }
         });
