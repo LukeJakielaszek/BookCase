@@ -9,6 +9,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentStatePagerAdapter;
+import androidx.viewpager.widget.PagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
 import android.util.Log;
@@ -87,6 +88,10 @@ public class PagerFragment extends Fragment {
         return v;
     }
 
+    public ArrayList<Book> fetch(){
+        return this.bookList;
+    }
+
     class MyViewPagerAdapter extends FragmentStatePagerAdapter {
 
         ArrayList<BookDetailsFragment> fragments;
@@ -94,6 +99,11 @@ public class PagerFragment extends Fragment {
         public MyViewPagerAdapter(@NonNull FragmentManager fm, ArrayList<BookDetailsFragment> fragments) {
             super(fm);
             this.fragments = fragments;
+        }
+
+        @Override
+        public int getItemPosition(@NonNull Object object) {
+            return PagerAdapter.POSITION_NONE;
         }
 
         @NonNull

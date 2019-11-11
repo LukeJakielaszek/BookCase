@@ -87,6 +87,10 @@ public class BookListFragment extends Fragment {
         return v;
     }
 
+    public ArrayList<Book> fetch(){
+        return this.bookList;
+    }
+
     public interface BookListSelectedListener{
         void BookListSelected(int index);
     }

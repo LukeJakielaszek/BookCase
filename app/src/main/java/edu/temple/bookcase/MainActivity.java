@@ -9,6 +9,9 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -25,9 +28,12 @@ import java.util.Arrays;
 public class MainActivity extends AppCompatActivity implements BookListFragment.BookListSelectedListener{
     BookListFragment bookListFragment;
     BookDetailsFragment bookDetailsFragment;
+    PagerFragment pf;
     ArrayList<Book> bookList;
     boolean singlePane;
     FragmentManager fragmentManager;
+    Button searchButton;
+    EditText searchText;
 
     Handler handler = new Handler(new Handler.Callback() {
         @Override
@@ -73,12 +79,12 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
 
         if(this.singlePane){
             Log.d("MyApplication", "single_pane");
-            PagerFragment pf = PagerFragment.newInstance(this.bookList);
+            this.pf = PagerFragment.newInstance(this.bookList);
 
             Log.d("MyApplication", "initialized pf");
 
             FragmentTransaction fragmentTransaction = this.fragmentManager.beginTransaction()
-                    .replace(R.id.frameLayoutLeft, pf);
+                    .replace(R.id.frameLayoutLeft, pf, "MyFragment");
 
             fragmentTransaction.commit();
             Log.d("MyApplication", "completed sp");
@@ -88,7 +94,7 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
             this.bookDetailsFragment = BookDetailsFragment.newInstance(this.bookList.get(0));
 
             FragmentTransaction fragmentTransaction = this.fragmentManager.beginTransaction()
-                    .replace(R.id.frameLayoutLeft, this.bookListFragment)
+                    .replace(R.id.frameLayoutLeft, this.bookListFragment, "MyFragment")
                     .replace(R.id.frameLayoutRight, this.bookDetailsFragment);
 
             fragmentTransaction.commit();
@@ -134,20 +140,49 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // find pertinent layout objects
+        this.singlePane = findViewById(R.id.frameLayoutRight) == null;
         this.fragmentManager = getSupportFragmentManager();
 
-        this.singlePane = findViewById(R.id.frameLayoutRight) == null;
-
         if(this.fragmentManager.getFragments().isEmpty() == true){
+            // On first run of the app, get book list from online
             Log.d("MyApplication", "On Startup");
             String urlString = "https://kamorris.com/lab/audlib/booksearch.php";
             obtainWebData(urlString);
         }else{
+            // for subsequent runs, we use the fetched fragments stored in our fragment manager's fragment
             Log.d("MyApplication", "After Startup");
-            
+
+            // get the last fragment that contains the booklist
+            Object unknownFragment = this.fragmentManager.findFragmentByTag("MyFragment");
+
+            // determine what the fragment type is and call the corresponding fetch method
+            if(unknownFragment instanceof BookListFragment){
+                this.bookList = ((BookListFragment) unknownFragment).fetch();
+            }else{
+                this.bookList = ((PagerFragment) unknownFragment).fetch();
+            }
+
+            // update our layout
+            this.processFragments();
         }
 
+        Log.d("MyApplication", "Completed Initialization");
 
+        // find our search bar and button
+        this.searchButton = findViewById(R.id.button);
+        this.searchText = findViewById(R.id.bookSearch);
+
+        this.searchButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String searchString = MainActivity.this.searchText.getText().toString();
+                Log.d("MyApplication", searchString);
+
+                String urlString = "https://kamorris.com/lab/audlib/booksearch.php?search=" + searchString;
+                obtainWebData(urlString);
+            }
+        });
     }
 
     @Override
