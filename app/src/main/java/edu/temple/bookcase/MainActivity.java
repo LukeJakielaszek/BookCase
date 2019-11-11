@@ -27,6 +27,7 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
     BookDetailsFragment bookDetailsFragment;
     ArrayList<Book> bookList;
     boolean singlePane;
+    FragmentManager fragmentManager;
 
     Handler handler = new Handler(new Handler.Callback() {
         @Override
@@ -70,17 +71,13 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
     protected void processFragments(){
         Log.d("MyApplication", "booklist obtained");
 
-        this.singlePane = findViewById(R.id.frameLayoutRight) == null;
-
         if(this.singlePane){
             Log.d("MyApplication", "single_pane");
             PagerFragment pf = PagerFragment.newInstance(this.bookList);
 
             Log.d("MyApplication", "initialized pf");
 
-            FragmentManager fragmentManager = getSupportFragmentManager();
-
-            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction()
+            FragmentTransaction fragmentTransaction = this.fragmentManager.beginTransaction()
                     .replace(R.id.frameLayoutLeft, pf);
 
             fragmentTransaction.commit();
@@ -90,9 +87,7 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
             this.bookListFragment = BookListFragment.newInstance(this.bookList);
             this.bookDetailsFragment = BookDetailsFragment.newInstance(this.bookList.get(0));
 
-            FragmentManager fragmentManager = getSupportFragmentManager();
-
-            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction()
+            FragmentTransaction fragmentTransaction = this.fragmentManager.beginTransaction()
                     .replace(R.id.frameLayoutLeft, this.bookListFragment)
                     .replace(R.id.frameLayoutRight, this.bookDetailsFragment);
 
@@ -139,8 +134,18 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        String urlString = "https://kamorris.com/lab/audlib/booksearch.php";
-        obtainWebData(urlString);
+        this.fragmentManager = getSupportFragmentManager();
+
+        this.singlePane = findViewById(R.id.frameLayoutRight) == null;
+
+        if(this.fragmentManager.getFragments().isEmpty() == true){
+            Log.d("MyApplication", "On Startup");
+            String urlString = "https://kamorris.com/lab/audlib/booksearch.php";
+            obtainWebData(urlString);
+        }else{
+            Log.d("MyApplication", "After Startup");
+            
+        }
 
 
     }
