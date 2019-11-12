@@ -37,12 +37,19 @@ public class PagerFragment extends Fragment {
     }
 
     public void setBookList(ArrayList<Book> bookList){
+        this.bookList.clear();
+        this.bookList.addAll(bookList);
+
         // set our book list array
         Bundle bundle = new Bundle();
-        bundle.putParcelableArrayList(BOOK_KEY, bookList);
+        bundle.putParcelableArrayList(BOOK_KEY, this.bookList);
         this.setArguments(bundle);
 
-        this.bookList = bookList;
+        this.fragments.clear();
+
+        for(int i = 0; i < this.bookList.size(); i++){
+            this.fragments.add(BookDetailsFragment.newInstance(this.bookList.get(i)));
+        }
 
         this.myViewPagerAdapter.notifyDataSetChanged();
     }

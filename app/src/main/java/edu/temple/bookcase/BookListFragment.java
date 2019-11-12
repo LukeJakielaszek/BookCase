@@ -8,6 +8,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -35,12 +36,13 @@ public class BookListFragment extends Fragment {
     }
 
     public void setBookList(ArrayList<Book> bookList){
+        this.bookList.clear();
+        this.bookList.addAll(bookList);
+
         // set our book list array
         Bundle bundle = new Bundle();
-        bundle.putParcelableArrayList(BOOK_KEY, bookList);
+        bundle.putParcelableArrayList(BOOK_KEY, this.bookList);
         this.setArguments(bundle);
-
-        this.bookList = bookList;
 
         this.bookListAdapter.notifyDataSetChanged();
     }

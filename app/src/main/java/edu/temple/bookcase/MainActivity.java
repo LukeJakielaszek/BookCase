@@ -122,6 +122,16 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
         if(unknownFragment instanceof BookListFragment){
             Log.d("MyApplication", "Updating BooklistFragment");
             ((BookListFragment) unknownFragment).setBookList(this.bookList);
+
+            // initialize preview book image to first book in list
+            if(!this.bookList.isEmpty()) {
+                this.bookDetailsFragment = BookDetailsFragment.newInstance(this.bookList.get(0));
+            }
+
+            FragmentTransaction fragmentTransaction = this.fragmentManager.beginTransaction()
+                    .replace(R.id.frameLayoutRight, this.bookDetailsFragment);
+
+            fragmentTransaction.commit();
         }else{
             Log.d("MyApplication", "Updating pagerfragment");
             ((PagerFragment) unknownFragment).setBookList(this.bookList);
