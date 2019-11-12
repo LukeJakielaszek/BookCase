@@ -36,6 +36,17 @@ public class PagerFragment extends Fragment {
         // Required empty public constructor
     }
 
+    public void setBookList(ArrayList<Book> bookList){
+        // set our book list array
+        Bundle bundle = new Bundle();
+        bundle.putParcelableArrayList(BOOK_KEY, bookList);
+        this.setArguments(bundle);
+
+        this.bookList = bookList;
+
+        this.myViewPagerAdapter.notifyDataSetChanged();
+    }
+
     public static PagerFragment newInstance(ArrayList<Book> bookList){
         PagerFragment pf = new PagerFragment();
 

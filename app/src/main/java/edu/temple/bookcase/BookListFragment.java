@@ -26,11 +26,23 @@ public class BookListFragment extends Fragment {
     private ListView listView;
 
     BookListSelectedListener parent;
+    BookListAdapter bookListAdapter;
 
     public static final String BOOK_KEY = "book";
 
     public BookListFragment() {
         // Required empty public constructor
+    }
+
+    public void setBookList(ArrayList<Book> bookList){
+        // set our book list array
+        Bundle bundle = new Bundle();
+        bundle.putParcelableArrayList(BOOK_KEY, bookList);
+        this.setArguments(bundle);
+
+        this.bookList = bookList;
+
+        this.bookListAdapter.notifyDataSetChanged();
     }
 
     public static BookListFragment newInstance(ArrayList<Book> bookList){
@@ -73,7 +85,7 @@ public class BookListFragment extends Fragment {
 
         listView = v.findViewById(R.id.ListView);
 
-        BookListAdapter bookListAdapter = new BookListAdapter(getContext(), this.bookList);
+        bookListAdapter = new BookListAdapter(getContext(), this.bookList);
 
         listView.setAdapter(bookListAdapter);
 

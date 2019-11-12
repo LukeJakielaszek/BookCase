@@ -38,10 +38,14 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
     Handler handler = new Handler(new Handler.Callback() {
         @Override
         public boolean handleMessage(@NonNull Message message) {
+            ArrayList list = (ArrayList) message.obj;
+            boolean isUpdate = (boolean)list.get(0);
+
             try{
                 Log.d("MyApplication", "Obtaining booklist");
+
                 // obtain json api and convert to json array
-                JSONArray webPage = new JSONArray(message.obj.toString());
+                JSONArray webPage = new JSONArray((String)list.get(1));
                 // instantiate array
                 MainActivity.this.bookList = new ArrayList<>(webPage.length());
 
@@ -66,16 +70,19 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
 
             Log.d("MyApplication", message.obj.toString());
 
-            MainActivity.this.processFragments();
-
-            Log.d("MyApplication", "Completed on create");
+            if(isUpdate){
+                MainActivity.this.updateFragments();
+            }else {
+                MainActivity.this.processFragments();
+            }
+            Log.d("MyApplication", "Completed web update");
 
             return false;
         }
     });
 
     protected void processFragments(){
-        Log.d("MyApplication", "booklist obtained");
+        Log.d("MyApplication", "Creating Fragments");
 
         if(this.singlePane){
             Log.d("MyApplication", "single_pane");
@@ -105,7 +112,53 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
         }
     }
 
-    protected void obtainWebData(final String urlString){
+    protected void updateFragments(){
+        Log.d("MyApplication", "Updating Fragments");
+
+        // get the last fragment that contains the booklist
+        Object unknownFragment = this.fragmentManager.findFragmentByTag("MyFragment");
+
+        // determine what the fragment type is and call the corresponding fetch method
+        if(unknownFragment instanceof BookListFragment){
+            Log.d("MyApplication", "Updating BooklistFragment");
+            ((BookListFragment) unknownFragment).setBookList(this.bookList);
+        }else{
+            Log.d("MyApplication", "Updating pagerfragment");
+            ((PagerFragment) unknownFragment).setBookList(this.bookList);
+        }
+
+        /*
+        if(this.singlePane){
+            Log.d("MyApplication", "single_pane");
+            this.pf = PagerFragment.newInstance(this.bookList);
+
+            Log.d("MyApplication", "initialized pf");
+
+            FragmentTransaction fragmentTransaction = this.fragmentManager.beginTransaction()
+                    .replace(R.id.frameLayoutLeft, pf, "MyFragment");
+
+            fragmentTransaction.commit();
+            Log.d("MyApplication", "completed sp");
+        }else{
+            Log.d("MyApplication", "Multi_pane");
+            this.bookListFragment = BookListFragment.newInstance(this.bookList);
+
+
+            // initialize preview book image to first book in list
+            if(!this.bookList.isEmpty()) {
+                this.bookDetailsFragment = BookDetailsFragment.newInstance(this.bookList.get(0));
+            }
+
+            FragmentTransaction fragmentTransaction = this.fragmentManager.beginTransaction()
+                    .replace(R.id.frameLayoutLeft, this.bookListFragment, "MyFragment")
+                    .replace(R.id.frameLayoutRight, this.bookDetailsFragment);
+
+            fragmentTransaction.commit();
+        }
+         */
+    }
+
+    protected void obtainWebData(final String urlString, final Boolean isUpdate){
         Thread t = new Thread() {
             @Override
             public void run() {
@@ -126,7 +179,12 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
                     }
 
                     Message message = Message.obtain();
-                    message.obj = builder.toString();
+
+                    // create a message indicating whether to update or recreate
+                    ArrayList list = new ArrayList();
+                    list.add(isUpdate);
+                    list.add(builder.toString());
+                    message.obj = list;
 
                     handler.sendMessage(message);
 
@@ -152,7 +210,7 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
             // On first run of the app, get book list from online
             Log.d("MyApplication", "On Startup");
             String urlString = "https://kamorris.com/lab/audlib/booksearch.php";
-            obtainWebData(urlString);
+            obtainWebData(urlString, false);
         }else{
             // for subsequent runs, we use the fetched fragments stored in our fragment manager's fragment
             Log.d("MyApplication", "After Startup");
@@ -190,7 +248,7 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
                     urlString = "https://kamorris.com/lab/audlib/booksearch.php?search=" + searchString;
                 }
 
-                obtainWebData(urlString);
+                obtainWebData(urlString,true);
             }
         });
     }
