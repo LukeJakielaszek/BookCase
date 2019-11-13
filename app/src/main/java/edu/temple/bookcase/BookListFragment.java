@@ -35,8 +35,12 @@ public class BookListFragment extends Fragment {
         // Required empty public constructor
     }
 
+    // update our fragment rather than reloading it
     public void setBookList(ArrayList<Book> bookList){
+        // clear the current fragment booklist
         this.bookList.clear();
+
+        // add the contents of the new booklist
         this.bookList.addAll(bookList);
 
         // set our book list array
@@ -44,6 +48,7 @@ public class BookListFragment extends Fragment {
         bundle.putParcelableArrayList(BOOK_KEY, this.bookList);
         this.setArguments(bundle);
 
+        // notify the adapter of the new booklist
         this.bookListAdapter.notifyDataSetChanged();
     }
 
@@ -101,6 +106,7 @@ public class BookListFragment extends Fragment {
         return v;
     }
 
+    // return the current book list array
     public ArrayList<Book> fetch(){
         return this.bookList;
     }

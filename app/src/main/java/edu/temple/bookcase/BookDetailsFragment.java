@@ -11,6 +11,7 @@ import androidx.fragment.app.Fragment;
 
 import android.os.Handler;
 import android.os.Message;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -66,16 +67,37 @@ public class BookDetailsFragment extends Fragment {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_book_details, container, false);
 
+        // get all items of our fragment
         titleTextView = v.findViewById(R.id.bookTitle);
         authorTextView = v.findViewById(R.id.bookAuthor);
         publishedTextView = v.findViewById(R.id.bookPublish);
         bookImageView = v.findViewById(R.id.bookImage);
 
-        displayBook(this.book);
+        if(this.book.getId() != -1) {
+            // display the book if the book exists
+            displayBook(this.book);
+        }else{
+            // if an empty book, display nothing
+
+            // display the book title
+            titleTextView.setText("");
+
+            // display the author
+            authorTextView.setText("");
+
+            // display the publish year
+            publishedTextView.setText("");
+
+            // force the imageview to be invisible
+            bookImageView.setVisibility(View.INVISIBLE);
+        }
+
 
         return v;
+
     }
 
+    // used to display the book image bitmap
     Handler handler = new Handler(new Handler.Callback() {
         @Override
         public boolean handleMessage(@NonNull Message message) {
@@ -87,14 +109,19 @@ public class BookDetailsFragment extends Fragment {
     });
 
     public void displayBook(Book book){
+        // display the book title
         titleTextView.setText(book.getTitle());
         titleTextView.setTextSize(32);
 
+        // display the author
         authorTextView.setText(book.getAuthor());
 
+        // display the publish year
         publishedTextView.setText(Integer.toString(book.getPublished()));
-        url = book.getCoverURL();
+        bookImageView.setVisibility(View.VISIBLE);
 
+        // read in the image through the URL and display the image
+        url = book.getCoverURL();
         new Thread() {
             @Override
             public void run() {

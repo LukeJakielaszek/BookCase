@@ -36,8 +36,12 @@ public class PagerFragment extends Fragment {
         // Required empty public constructor
     }
 
+    // update the booklist rather than reloading it
     public void setBookList(ArrayList<Book> bookList){
+        // clear the old booklist array
         this.bookList.clear();
+
+        // add the updated list elements
         this.bookList.addAll(bookList);
 
         // set our book list array
@@ -45,12 +49,15 @@ public class PagerFragment extends Fragment {
         bundle.putParcelableArrayList(BOOK_KEY, this.bookList);
         this.setArguments(bundle);
 
+        // clear the old bookdetailsfragment array
         this.fragments.clear();
 
+        // update the array with new bookdetailsFragment fragments
         for(int i = 0; i < this.bookList.size(); i++){
             this.fragments.add(BookDetailsFragment.newInstance(this.bookList.get(i)));
         }
 
+        // notify the adapter of the data change
         this.myViewPagerAdapter.notifyDataSetChanged();
     }
 
@@ -86,26 +93,21 @@ public class PagerFragment extends Fragment {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_pager, container, false);
 
+        // create an array of bookdetailsfragment fragments
         fragments = new ArrayList<BookDetailsFragment>();
-
         for(int i = 0; i < this.bookList.size(); i++){
             fragments.add(BookDetailsFragment.newInstance(this.bookList.get(i)));
         }
 
-        /*
-        for(Book book : this.bookList){
-            fragments.add(BookDetailsFragment.newInstance(book));
-        }
-        */
+        // set the adapter with our bookdetailsfragment array
         viewPager = v.findViewById(R.id.viewPager);
-
         myViewPagerAdapter = new MyViewPagerAdapter(getFragmentManager(), fragments);
-
         viewPager.setAdapter(myViewPagerAdapter);
 
         return v;
     }
 
+    // return the current book list
     public ArrayList<Book> fetch(){
         return this.bookList;
     }

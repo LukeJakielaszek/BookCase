@@ -81,10 +81,12 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
         }
     });
 
+    // create new fragments with booklist
     protected void processFragments(){
         Log.d("MyApplication", "Creating Fragments");
 
         if(this.singlePane){
+            // if singlepane we use pagerfragment
             Log.d("MyApplication", "single_pane");
             this.pf = PagerFragment.newInstance(this.bookList);
 
@@ -96,12 +98,15 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
             fragmentTransaction.commit();
             Log.d("MyApplication", "completed sp");
         }else{
+            // if doublepane, we create booklistfragment
             Log.d("MyApplication", "Multi_pane");
             this.bookListFragment = BookListFragment.newInstance(this.bookList);
 
             // initialize preview book image to first book in list
             if(!this.bookList.isEmpty()) {
                 this.bookDetailsFragment = BookDetailsFragment.newInstance(this.bookList.get(0));
+            }else{
+                this.bookDetailsFragment = BookDetailsFragment.newInstance(new Book(-1, null, null, 0, null));
             }
 
             FragmentTransaction fragmentTransaction = this.fragmentManager.beginTransaction()
@@ -112,62 +117,42 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
         }
     }
 
+    // update the fragment rather than create a newInstance of the fragment
     protected void updateFragments(){
         Log.d("MyApplication", "Updating Fragments");
 
         // get the last fragment that contains the booklist
         Object unknownFragment = this.fragmentManager.findFragmentByTag("MyFragment");
 
-        // determine what the fragment type is and call the corresponding fetch method
+        // determine what the fragment type is and update the fragment's booklist
         if(unknownFragment instanceof BookListFragment){
+            // update the booklistfragment
             Log.d("MyApplication", "Updating BooklistFragment");
+
+            // set the updated booklist for the fragment rather than reloading it
             ((BookListFragment) unknownFragment).setBookList(this.bookList);
 
-            // initialize preview book image to first book in list
+            // initialize preview book image to first book in updated list
             if(!this.bookList.isEmpty()) {
                 this.bookDetailsFragment = BookDetailsFragment.newInstance(this.bookList.get(0));
+            }else{
+                this.bookDetailsFragment = BookDetailsFragment.newInstance(new Book(-1, null, null, 0, null));
             }
 
+            // add the new bookdetailsfragment
             FragmentTransaction fragmentTransaction = this.fragmentManager.beginTransaction()
                     .replace(R.id.frameLayoutRight, this.bookDetailsFragment);
 
             fragmentTransaction.commit();
         }else{
             Log.d("MyApplication", "Updating pagerfragment");
+
+            // update the booklist for the PagerFragment
             ((PagerFragment) unknownFragment).setBookList(this.bookList);
         }
-
-        /*
-        if(this.singlePane){
-            Log.d("MyApplication", "single_pane");
-            this.pf = PagerFragment.newInstance(this.bookList);
-
-            Log.d("MyApplication", "initialized pf");
-
-            FragmentTransaction fragmentTransaction = this.fragmentManager.beginTransaction()
-                    .replace(R.id.frameLayoutLeft, pf, "MyFragment");
-
-            fragmentTransaction.commit();
-            Log.d("MyApplication", "completed sp");
-        }else{
-            Log.d("MyApplication", "Multi_pane");
-            this.bookListFragment = BookListFragment.newInstance(this.bookList);
-
-
-            // initialize preview book image to first book in list
-            if(!this.bookList.isEmpty()) {
-                this.bookDetailsFragment = BookDetailsFragment.newInstance(this.bookList.get(0));
-            }
-
-            FragmentTransaction fragmentTransaction = this.fragmentManager.beginTransaction()
-                    .replace(R.id.frameLayoutLeft, this.bookListFragment, "MyFragment")
-                    .replace(R.id.frameLayoutRight, this.bookDetailsFragment);
-
-            fragmentTransaction.commit();
-        }
-         */
     }
 
+    // scrape the web data from URL
     protected void obtainWebData(final String urlString, final Boolean isUpdate){
         Thread t = new Thread() {
             @Override
@@ -177,6 +162,7 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
                     url = new URL(urlString);
                     BufferedReader reader = null;
 
+                    // read the data
                     reader = new BufferedReader(new InputStreamReader(url.openStream()));
 
                     StringBuilder builder = new StringBuilder();
@@ -196,6 +182,7 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
                     list.add(builder.toString());
                     message.obj = list;
 
+                    // send the data to the handler
                     handler.sendMessage(message);
 
                 } catch (IOException e) {
@@ -220,6 +207,8 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
             // On first run of the app, get book list from online
             Log.d("MyApplication", "On Startup");
             String urlString = "https://kamorris.com/lab/audlib/booksearch.php";
+
+            // create new fragments
             obtainWebData(urlString, false);
         }else{
             // for subsequent runs, we use the fetched fragments stored in our fragment manager's fragment
@@ -235,7 +224,7 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
                 this.bookList = ((PagerFragment) unknownFragment).fetch();
             }
 
-            // update our layout
+            // create new fragment with old booklist
             this.processFragments();
         }
 
@@ -248,9 +237,11 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
         this.searchButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                // get the searched text
                 String searchString = MainActivity.this.searchText.getText().toString();
                 Log.d("MyApplication", searchString);
 
+                // create the search URL with search text
                 String urlString;
                 if(searchString == null){
                     urlString = "https://kamorris.com/lab/audlib/booksearch.php";
@@ -258,6 +249,7 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
                     urlString = "https://kamorris.com/lab/audlib/booksearch.php?search=" + searchString;
                 }
 
+                // obtain the data from website and update the fragment rather than create new
                 obtainWebData(urlString,true);
             }
         });
