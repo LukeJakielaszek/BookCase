@@ -60,9 +60,10 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
                     String author = book_web.getString("author");
                     int published = book_web.getInt("published");
                     String cover_url = book_web.getString("cover_url");
+                    int duration = book_web.getInt("duration");
 
                     // add our object to the booklist
-                    MainActivity.this.bookList.add(new Book(id, title, author, published, cover_url));
+                    MainActivity.this.bookList.add(new Book(id, title, author, published, cover_url, duration));
                 }
             }catch (JSONException e){
                 e.printStackTrace();
@@ -106,7 +107,7 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
             if(!this.bookList.isEmpty()) {
                 this.bookDetailsFragment = BookDetailsFragment.newInstance(this.bookList.get(0));
             }else{
-                this.bookDetailsFragment = BookDetailsFragment.newInstance(new Book(-1, null, null, 0, null));
+                this.bookDetailsFragment = BookDetailsFragment.newInstance(new Book(-1, null, null, 0, null, 0));
             }
 
             FragmentTransaction fragmentTransaction = this.fragmentManager.beginTransaction()
@@ -136,7 +137,7 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
             if(!this.bookList.isEmpty()) {
                 this.bookDetailsFragment = BookDetailsFragment.newInstance(this.bookList.get(0));
             }else{
-                this.bookDetailsFragment = BookDetailsFragment.newInstance(new Book(-1, null, null, 0, null));
+                this.bookDetailsFragment = BookDetailsFragment.newInstance(new Book(-1, null, null, 0, null, 0));
             }
 
             // add the new bookdetailsfragment
@@ -203,7 +204,7 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
         this.singlePane = findViewById(R.id.frameLayoutRight) == null;
         this.fragmentManager = getSupportFragmentManager();
 
-        if(this.fragmentManager.getFragments().isEmpty() == true){
+        if(this.fragmentManager.getFragments().isEmpty()){
             // On first run of the app, get book list from online
             Log.d("MyApplication", "On Startup");
             String urlString = "https://kamorris.com/lab/audlib/booksearch.php";
