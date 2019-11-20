@@ -16,6 +16,9 @@
 
     <string name="image_default">Default Book Image</string>
     <string name="search">Search Book</string>
+    <string name="pauseButton">Pause</string>
+    <string name="stopButton">Stop</string>
+    <string name="playButton">Play</string>
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
