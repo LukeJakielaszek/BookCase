@@ -48,7 +48,9 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
     Button pauseButton;
     Button stopButton;
     Book curBook;
+    boolean isBound;
     AudiobookService.MediaControlBinder mediaControlBinder;
+    boolean isDragging;
 
     public static final String CUR_BOOK_KEY = "book";
 
@@ -215,6 +217,16 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
     }
 
     @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        if(isBound) {
+            unbindService(MainActivity.this);
+            this.isBound = false;
+        }
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -291,6 +303,7 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
                 Intent intent = new Intent(MainActivity.this, AudiobookService.class);
                 startService(intent);
                 bindService(intent, MainActivity.this, BIND_AUTO_CREATE);
+                MainActivity.this.isBound = true;
             }
         }.start();
 
@@ -311,6 +324,35 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
             @Override
             public void onClick(View view) {
                 mediaControlBinder.stop();
+            }
+        });
+
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+                // if user sets progress, play book from new position
+                if(b) {
+                    Log.d("MyApplication", "Progress changed to " + String.valueOf(i));
+
+                    // get position as a percent
+                    double cur_percent = (double)i / (double)100;
+
+                    // unscale the position based on book length
+                    int position = (int)((double)curBook.getDuration() * cur_percent);
+
+                    Log.d("MyApplication", "modified position " + String.valueOf(position));
+
+                    // play the book
+                    mediaControlBinder.seekTo(position);
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar){
             }
         });
     }
@@ -354,18 +396,19 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
         // track the current book being played
         this.curBook = curBook;
 
-        // play the book
-        mediaControlBinder.play(curBook.getId());
-
-        // update our progress bar
-        this.seekBar.setProgress(0);
-
         setTitle(getString(R.string.nowPlay) + " " + curBook.getTitle());
 
+
+        // set the progress to zero
+        this.seekBar.setProgress(0);
+
+        // play the book
+        mediaControlBinder.play(curBook.getId());
     }
 
     @Override
     public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+        // set the binder object
         mediaControlBinder = (AudiobookService.MediaControlBinder) iBinder;
         mediaControlBinder.setProgressHandler(progressHandler);
         connected = true;
@@ -373,6 +416,7 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
 
     @Override
     public void onServiceDisconnected(ComponentName componentName) {
+        Log.d("MyApplication", "Unbinding service");
         mediaControlBinder = null;
     }
 
