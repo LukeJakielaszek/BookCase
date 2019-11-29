@@ -97,6 +97,9 @@ public class BookDetailsFragment extends Fragment {
 
             // force the imageview to be invisible
             bookImageView.setVisibility(View.INVISIBLE);
+
+            // make button invisible
+            this.button.setVisibility(View.INVISIBLE);
         }
 
         return v;
@@ -134,12 +137,15 @@ public class BookDetailsFragment extends Fragment {
         // display the book title
         titleTextView.setText(book.getTitle());
         titleTextView.setTextSize(32);
+        this.button.setVisibility(View.VISIBLE);
 
         // display the author
         authorTextView.setText(book.getAuthor());
 
         // display the publish year
         publishedTextView.setText(Integer.toString(book.getPublished()));
+
+        // make playbutton visible
         bookImageView.setVisibility(View.VISIBLE);
 
         // read in the image through the URL and display the image
