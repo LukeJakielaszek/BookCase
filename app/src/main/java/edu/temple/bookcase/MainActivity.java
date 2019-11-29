@@ -48,9 +48,9 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
     Button pauseButton;
     Button stopButton;
     Book curBook;
-    
-
     AudiobookService.MediaControlBinder mediaControlBinder;
+
+    public static final String CUR_BOOK_KEY = "book";
 
     Handler handler = new Handler(new Handler.Callback() {
         @Override
@@ -219,6 +219,15 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // load the current book if we were listening to one
+        if(savedInstanceState != null){
+            curBook = savedInstanceState.getParcelable(CUR_BOOK_KEY);
+            if(curBook != null){
+                Log.d("MyApplication", "Playing " + curBook.getTitle());
+                setTitle(getString(R.string.nowPlay) + " " + curBook.getTitle());
+            }
+        }
+
         // find pertinent layout objects
         this.singlePane = findViewById(R.id.frameLayoutRight) == null;
         this.fragmentManager = getSupportFragmentManager();
@@ -316,6 +325,12 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
     private Handler progressHandler = new Handler(new Handler.Callback() {
         @Override
         public boolean handleMessage(@NonNull Message message) {
+            // do nothing if nothing is playing (paused for example)
+            if(message.obj == null){
+                Log.d("MyApplication", "Unable to update progress");
+                return false;
+            }
+
             AudiobookService.BookProgress bookProgress = (AudiobookService.BookProgress)message.obj;
             Log.d("MyApplication", "Setting Progress: " + String.valueOf(bookProgress.getProgress()) + " Out of " + String.valueOf(curBook.getDuration()));
 
@@ -341,7 +356,8 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
 
         // update our progress bar
         this.seekBar.setProgress(0);
-        setTitle("Now Playing " + curBook.getTitle());
+
+        setTitle(getString(R.string.nowPlay) + " " + curBook.getTitle());
 
     }
 
@@ -358,7 +374,21 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
     }
 
     @Override
-    public void onSaveInstanceState(@NonNull Bundle outState, @NonNull PersistableBundle outPersistentState) {
-        super.onSaveInstanceState(outState, outPersistentState);
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        // save the current book within our activity
+        outState.putParcelable(CUR_BOOK_KEY, curBook);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        // load the current book if we were listening to one
+        if(savedInstanceState != null){
+            curBook = savedInstanceState.getParcelable(CUR_BOOK_KEY);
+            if(curBook != null){
+                Log.d("MyApplication", "Restoring " + curBook.getTitle());
+            }
+        }
     }
 }
