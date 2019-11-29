@@ -217,6 +217,7 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
     protected void onDestroy() {
         super.onDestroy();
 
+        // unbind from the service on destroy
         if(isBound) {
             unbindService(MainActivity.this);
             this.isBound = false;
@@ -231,7 +232,9 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
         // load the current book if we were listening to one
         if(savedInstanceState != null){
             curBook = savedInstanceState.getParcelable(CUR_BOOK_KEY);
+
             if(curBook != null){
+                // set the title if the book exists
                 Log.d("MyApplication", "Playing " + curBook.getTitle());
                 setTitle(getString(R.string.nowPlay) + " " + curBook.getTitle());
             }
