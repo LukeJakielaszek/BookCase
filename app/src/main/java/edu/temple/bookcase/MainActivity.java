@@ -5,13 +5,20 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
+import android.content.ComponentName;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Message;
+import android.os.PersistableBundle;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.SeekBar;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -26,7 +33,7 @@ import java.util.ArrayList;
 
 import edu.temple.audiobookplayer.AudiobookService;
 
-public class MainActivity extends AppCompatActivity implements BookListFragment.BookListSelectedListener{
+public class MainActivity extends AppCompatActivity implements BookListFragment.BookListSelectedListener, BookDetailsFragment.PlayBookListener, ServiceConnection {
     BookListFragment bookListFragment;
     BookDetailsFragment bookDetailsFragment;
     PagerFragment pf;
@@ -35,6 +42,15 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
     FragmentManager fragmentManager;
     Button searchButton;
     EditText searchText;
+    boolean connected;
+    boolean isPlaying;
+    SeekBar seekBar;
+    Button pauseButton;
+    Button stopButton;
+    Book curBook;
+    
+
+    AudiobookService.MediaControlBinder mediaControlBinder;
 
     Handler handler = new Handler(new Handler.Callback() {
         @Override
@@ -154,6 +170,8 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
         }
     }
 
+
+
     // scrape the web data from URL
     protected void obtainWebData(final String urlString, final Boolean isUpdate){
         Thread t = new Thread() {
@@ -255,6 +273,37 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
                 obtainWebData(urlString,true);
             }
         });
+
+        this.seekBar = findViewById(R.id.progressBar);
+
+        new Thread(){
+            @Override
+            public void run() {
+                Intent intent = new Intent(MainActivity.this, AudiobookService.class);
+                startService(intent);
+                bindService(intent, MainActivity.this, BIND_AUTO_CREATE);
+            }
+        }.start();
+
+        // find the pause and stop buttons
+        pauseButton = findViewById(R.id.pauseButton);
+        stopButton = findViewById(R.id.stopButton);
+
+        // pause the book
+        pauseButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mediaControlBinder.pause();
+            }
+        });
+
+        // stop the book
+        stopButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mediaControlBinder.stop();
+            }
+        });
     }
 
     @Override
@@ -262,5 +311,54 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
         Log.d("MyApplication", Integer.toString(index));
 
         bookDetailsFragment.displayBook(bookList.get(index));
+    }
+
+    private Handler progressHandler = new Handler(new Handler.Callback() {
+        @Override
+        public boolean handleMessage(@NonNull Message message) {
+            AudiobookService.BookProgress bookProgress = (AudiobookService.BookProgress)message.obj;
+            Log.d("MyApplication", "Setting Progress: " + String.valueOf(bookProgress.getProgress()) + " Out of " + String.valueOf(curBook.getDuration()));
+
+            // find the percentage of the book we have listened to
+            double percent = (double) bookProgress.getProgress() / (double)curBook.getDuration();
+
+            Log.d("MyApplication", "Percent: " + String.valueOf((int)(percent*100)));
+
+            // set the progress to the new percentage
+            seekBar.setProgress((int)(percent * 100));
+            return false;
+        }
+    });
+
+    @Override
+    public void playBook(Book curBook) {
+        // track that we are playing a book
+        this.isPlaying = true;
+        this.curBook = curBook;
+
+        // play the book
+        mediaControlBinder.play(curBook.getId());
+
+        // update our progress bar
+        this.seekBar.setProgress(0);
+        setTitle("Now Playing " + curBook.getTitle());
+
+    }
+
+    @Override
+    public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+        mediaControlBinder = (AudiobookService.MediaControlBinder) iBinder;
+        mediaControlBinder.setProgressHandler(progressHandler);
+        connected = true;
+    }
+
+    @Override
+    public void onServiceDisconnected(ComponentName componentName) {
+        mediaControlBinder = null;
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState, @NonNull PersistableBundle outPersistentState) {
+        super.onSaveInstanceState(outState, outPersistentState);
     }
 }

@@ -1,6 +1,7 @@
 package edu.temple.bookcase;
 
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
@@ -15,6 +16,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -33,6 +35,9 @@ public class BookDetailsFragment extends Fragment {
     TextView publishedTextView;
     ImageView bookImageView;
     String url;
+    Button button;
+    PlayBookListener parent;
+
 
     public static final String BOOK_KEY = "book";
 
@@ -56,7 +61,7 @@ public class BookDetailsFragment extends Fragment {
         super.onCreate(savedInstanceState);
 
         // get our book list array
-        if(getArguments() != null){
+        if(getArguments() != null) {
             this.book = getArguments().getParcelable(BOOK_KEY);
         }
     }
@@ -92,9 +97,18 @@ public class BookDetailsFragment extends Fragment {
             bookImageView.setVisibility(View.INVISIBLE);
         }
 
+        button = v.findViewById(R.id.playButton);
+
+        // checks if play button was clicked
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // notifies parent of click
+                parent.playBook(BookDetailsFragment.this.book);
+            }
+        });
 
         return v;
-
     }
 
     // used to display the book image bitmap
@@ -107,6 +121,19 @@ public class BookDetailsFragment extends Fragment {
             return false;
         }
     });
+
+    // ensure parent is of your interface type
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+
+        // check if parent is correct interface
+        if(!(context instanceof PlayBookListener)){
+            throw new RuntimeException("ERROR: Parent does not implement BookListSelectedListener interface");
+        }
+
+        parent = (PlayBookListener) context;
+    }
 
     public void displayBook(Book book){
         // display the book title
@@ -140,5 +167,9 @@ public class BookDetailsFragment extends Fragment {
                 }
             }
         }.start();
+    }
+
+    public interface PlayBookListener{
+        void playBook(Book curBook);
     }
 }
