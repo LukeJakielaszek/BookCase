@@ -10,6 +10,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import android.os.Debug;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
@@ -77,6 +78,7 @@ public class BookDetailsFragment extends Fragment {
         authorTextView = v.findViewById(R.id.bookAuthor);
         publishedTextView = v.findViewById(R.id.bookPublish);
         bookImageView = v.findViewById(R.id.bookImage);
+        button = v.findViewById(R.id.playButton);
 
         if(this.book.getId() != -1) {
             // display the book if the book exists
@@ -97,17 +99,6 @@ public class BookDetailsFragment extends Fragment {
             bookImageView.setVisibility(View.INVISIBLE);
         }
 
-        button = v.findViewById(R.id.playButton);
-
-        // checks if play button was clicked
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                // notifies parent of click
-                parent.playBook(BookDetailsFragment.this.book);
-            }
-        });
-
         return v;
     }
 
@@ -117,6 +108,7 @@ public class BookDetailsFragment extends Fragment {
         public boolean handleMessage(@NonNull Message message) {
             Bitmap bm = (Bitmap)message.obj;
             BookDetailsFragment.this.bookImageView.setImageBitmap(bm);
+            Log.d("MyApplication", "Handling");
 
             return false;
         }
@@ -135,7 +127,10 @@ public class BookDetailsFragment extends Fragment {
         parent = (PlayBookListener) context;
     }
 
-    public void displayBook(Book book){
+    public void displayBook(Book curbook){
+        // update what book is being displayed
+        this.book = curbook;
+
         // display the book title
         titleTextView.setText(book.getTitle());
         titleTextView.setTextSize(32);
@@ -167,6 +162,16 @@ public class BookDetailsFragment extends Fragment {
                 }
             }
         }.start();
+
+        // updates play click listener to check if play button was clicked
+        BookDetailsFragment.this.button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // notifies parent of click
+                Log.d("MyApplication", "Clicked " + BookDetailsFragment.this.book.getTitle());
+                parent.playBook(BookDetailsFragment.this.book);
+            }
+        });
     }
 
     public interface PlayBookListener{

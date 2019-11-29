@@ -331,6 +331,7 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
                 return false;
             }
 
+            // get the audiobook object
             AudiobookService.BookProgress bookProgress = (AudiobookService.BookProgress)message.obj;
             Log.d("MyApplication", "Setting Progress: " + String.valueOf(bookProgress.getProgress()) + " Out of " + String.valueOf(curBook.getDuration()));
 
@@ -349,6 +350,8 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
     public void playBook(Book curBook) {
         // track that we are playing a book
         this.isPlaying = true;
+
+        // track the current book being played
         this.curBook = curBook;
 
         // play the book
