@@ -42,15 +42,12 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
     FragmentManager fragmentManager;
     Button searchButton;
     EditText searchText;
-    boolean connected;
-    boolean isPlaying;
     SeekBar seekBar;
     Button pauseButton;
     Button stopButton;
     Book curBook;
     boolean isBound;
     AudiobookService.MediaControlBinder mediaControlBinder;
-    boolean isDragging;
 
     public static final String CUR_BOOK_KEY = "book";
 
@@ -390,9 +387,6 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
 
     @Override
     public void playBook(Book curBook) {
-        // track that we are playing a book
-        this.isPlaying = true;
-
         // track the current book being played
         this.curBook = curBook;
 
@@ -411,7 +405,6 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
         // set the binder object
         mediaControlBinder = (AudiobookService.MediaControlBinder) iBinder;
         mediaControlBinder.setProgressHandler(progressHandler);
-        connected = true;
     }
 
     @Override
