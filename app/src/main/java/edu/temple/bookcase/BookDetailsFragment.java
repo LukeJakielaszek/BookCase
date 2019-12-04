@@ -37,6 +37,8 @@ public class BookDetailsFragment extends Fragment {
     ImageView bookImageView;
     String url;
     Button button;
+    Button DeleteButton;
+    Button DownloadButton;
     PlayBookListener parent;
 
 
@@ -79,6 +81,9 @@ public class BookDetailsFragment extends Fragment {
         publishedTextView = v.findViewById(R.id.bookPublish);
         bookImageView = v.findViewById(R.id.bookImage);
         button = v.findViewById(R.id.playButton);
+        DeleteButton = v.findViewById(R.id.Delete);
+        DownloadButton = v.findViewById(R.id.Download);
+
 
         if(this.book.getId() != -1) {
             // display the book if the book exists
@@ -178,9 +183,28 @@ public class BookDetailsFragment extends Fragment {
                 parent.playBook(BookDetailsFragment.this.book);
             }
         });
+
+        BookDetailsFragment.this.DownloadButton.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view) {
+                Log.d("MyApplication", "Downloading " + BookDetailsFragment.this.book.getTitle());
+                parent.download(BookDetailsFragment.this.book);
+            }
+        });
+
+        BookDetailsFragment.this.DeleteButton.setOnClickListener(new View.OnClickListener(){
+
+            @Override
+            public void onClick(View view) {
+                Log.d("MyApplication", "Deleting " + BookDetailsFragment.this.book.getTitle());
+                parent.delete(BookDetailsFragment.this.book);
+            }
+        });
     }
 
     public interface PlayBookListener{
         void playBook(Book curBook);
+        void download(Book curBook);
+        void delete(Book curBook);
     }
 }

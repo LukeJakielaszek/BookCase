@@ -9,6 +9,7 @@ import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
@@ -25,6 +26,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
@@ -48,6 +50,8 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
     Book curBook;
     boolean isBound;
     AudiobookService.MediaControlBinder mediaControlBinder;
+    String booklistSaveFileName = "saveFile";
+    File booklistSaveFile;
 
     public static final String CUR_BOOK_KEY = "book";
 
@@ -396,12 +400,22 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
 
         setTitle(getString(R.string.nowPlay) + " " + curBook.getTitle());
 
-
         // set the progress to zero
         this.seekBar.setProgress(0);
 
         // play the book
         mediaControlBinder.play(curBook.getId());
+    }
+
+    @Override
+    public void download(Book curBook) {
+        // download book and save to file
+    }
+
+    @Override
+    public void delete(Book curBook) {
+        // delete book from file
+
     }
 
     @Override
