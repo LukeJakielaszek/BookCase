@@ -20,6 +20,8 @@
     <string name="stopButton">Stop</string>
     <string name="playButton">Play</string>
     <string name="nowPlay">Now Playing</string>
+    <string name="Delete">Delete</string>
+    <string name="Download">Download</string>
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>

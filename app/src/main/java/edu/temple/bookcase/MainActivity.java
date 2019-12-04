@@ -382,7 +382,8 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
 
             Log.d("MyApplication", "Percent: " + String.valueOf((int)(percent*100)));
 
-            // set the progress to the new percentage
+            // set the progress to the
+            // new percentage
             seekBar.setProgress((int)(percent * 100));
             return false;
         }
