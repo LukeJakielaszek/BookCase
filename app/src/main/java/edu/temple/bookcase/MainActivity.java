@@ -27,8 +27,12 @@ import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.Buffer;
 import java.util.ArrayList;
@@ -410,6 +414,48 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
     @Override
     public void download(Book curBook) {
         // download book and save to file
+
+        final String download_link = "https://kamorris.com/lab/audlib/download.php?id=" + Integer.toString(curBook.getId());
+        new Thread(){
+            @Override
+            public void run() {
+                super.run();
+                InputStream in = null;
+                HttpURLConnection con = null;
+                try {
+                    URL url = new URL(download_link);
+                    con = (HttpURLConnection) url.openConnection();
+                    con.connect();
+
+                    // Check for success
+                    if (con.getResponseCode() != HttpURLConnection.HTTP_OK) {
+                        Log.d("MyApplication", "ERRROR: Server returned " + con.getResponseMessage());
+                        return;
+                    }
+
+                    // get the input stream for file
+                    in = con.getInputStream();
+                    int count;
+                    byte contents[] = new byte[4096];
+                    while ((count = in.read(contents)) != -1) {
+                        Log.d("MyApplication", String.valueOf(count));
+                    }
+                    Log.d("MyApplication", "Obtained file");
+                } catch (Exception e) {
+                    Log.d("MyApplication", e.toString());
+                    return;
+                } finally {
+                    try {
+                        if (in != null)
+                            in.close();
+                    } catch (IOException ignored) {
+                    }
+
+                    if (con != null)
+                        con.disconnect();
+                }
+            }
+        }.start();
     }
 
     @Override
