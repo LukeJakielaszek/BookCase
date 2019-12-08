@@ -27,10 +27,14 @@ import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -54,8 +58,7 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
     Book curBook;
     boolean isBound;
     AudiobookService.MediaControlBinder mediaControlBinder;
-    String booklistSaveFileName = "saveFile";
-    File booklistSaveFile;
+    int pastBookProgress;
 
     public static final String CUR_BOOK_KEY = "book";
 
@@ -332,6 +335,23 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
             @Override
             public void onClick(View view) {
                 mediaControlBinder.stop();
+
+                new Thread(){
+                    @Override
+                    public void run() {
+                        // get path to our position file
+                        String path = getFilesDir() + "/" + String.valueOf(curBook.getId()) + "pos";
+                        File file = new File(path);
+
+                        // delete the file if it already exists
+                        if(file.exists()){
+                            file.delete();
+                        }
+
+                        Log.d("MyApplication", curBook.getTitle() + " position deleted.");
+                    }
+                }.start();
+
             }
         });
 
@@ -378,12 +398,64 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
             // do nothing if nothing is playing (paused for example)
             if(message.obj == null){
                 Log.d("MyApplication", "Unable to update progress");
+
+                // if we should update our progress
+                if(pastBookProgress-10 > 0) {
+
+                    // create a thread to update our progress
+                    new Thread() {
+                        @Override
+                        public void run() {
+                            // get path to our position file
+                            String path = getFilesDir() + "/" + String.valueOf(curBook.getId()) + "pos";
+                            File file = new File(path);
+
+                            Log.d("MyApplication", "saving position at " + path);
+                            // delete the file if it already exists
+                            FileOutputStream fileOutputStream = null;
+                            ObjectOutputStream objectOutputStream = null;
+                            try {
+                                if (!file.exists()) {
+                                    // create a new file
+                                    file.createNewFile();
+                                }
+
+                                // set up output streams
+                                fileOutputStream = new FileOutputStream(path);
+                                objectOutputStream = new ObjectOutputStream(fileOutputStream);
+
+                                // write the position to file
+                                objectOutputStream.writeInt(pastBookProgress - 10);
+                                Log.d("MyApplication", curBook.getTitle() + " (THREAD) position updated to " + String.valueOf(pastBookProgress - 10));
+                            } catch (FileNotFoundException e) {
+                                e.printStackTrace();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }finally {
+                                // close open streams
+                                try {
+                                    if (objectOutputStream != null)
+                                        objectOutputStream.close();
+                                    if(fileOutputStream != null){
+                                        fileOutputStream.close();
+                                    }
+                                } catch (IOException ignored) {
+                                }
+                            }
+
+
+                            Log.d("MyApplication", curBook.getTitle() + " position updated to " + String.valueOf(pastBookProgress - 10));
+                        }
+                    }.start();
+                }
                 return false;
             }
 
             // get the audiobook object
-            AudiobookService.BookProgress bookProgress = (AudiobookService.BookProgress)message.obj;
+            final AudiobookService.BookProgress bookProgress = (AudiobookService.BookProgress)message.obj;
             Log.d("MyApplication", "Setting Progress: " + String.valueOf(bookProgress.getProgress()) + " Out of " + String.valueOf(curBook.getDuration()));
+
+            pastBookProgress = bookProgress.getProgress();
 
             // find the percentage of the book we have listened to
             double percent = (double) bookProgress.getProgress() / (double)curBook.getDuration();
@@ -393,52 +465,152 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
             // set the progress to the
             // new percentage
             seekBar.setProgress((int)(percent * 100));
+
             return false;
         }
     });
 
     @Override
-    public void playBook(Book curBook) {
+    public void playBook(final Book curBook) {
         // track the current book being played
         this.curBook = curBook;
 
         setTitle(getString(R.string.nowPlay) + " " + curBook.getTitle());
 
-        // set the progress to zero
         this.seekBar.setProgress(0);
 
-        // play the book
-        mediaControlBinder.play(curBook.getId());
+        // get path of file
+        String path = getFilesDir() + "/" + String.valueOf(curBook.getId());
+        File file = new File(path);
+
+        // check if the file has been downloaded
+        if(file.exists()){
+            Log.d("MyApplication", "Playing " + curBook.getTitle() + " from file");
+            mediaControlBinder.play(file);
+        }else {
+            Log.d("MyApplication", "streaming " + curBook.getTitle() + " from web");
+            // play the book
+            mediaControlBinder.play(curBook.getId());
+        }
+
+        // check if the position of the book has been stored
+        path = getFilesDir() + "/" + String.valueOf(curBook.getId()) + "pos";
+        Log.d("MyApplication", "Locating position at " + path);
+
+        file = new File(path);
+        Log.d("MyApplication", "checking if position file exists");
+        if (file.exists()) {
+            Log.d("MyApplication", "position file exists");
+            final File finalFile = file;
+            new Thread() {
+                @Override
+                public void run() {
+                    super.run();
+
+                    // give a brief pause to allow the audiobook service to start
+                    try {
+                        sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+
+                    Log.d("MyApplication", "Running thread");
+
+                    // input streams
+                    FileInputStream fileInputStream = null;
+                    ObjectInputStream objectInputStream = null;
+
+                    try {
+                        // create input streams
+                        fileInputStream = new FileInputStream(finalFile);
+                        objectInputStream = new ObjectInputStream(fileInputStream);
+
+                        // read the stored position
+                        int pos = objectInputStream.readInt();
+                        Log.d("MyApplication", "Playing from position " + String.valueOf(pos));
+
+                        // set progress and seek to the position in service
+                        seekBar.setProgress((int)(((double)(pos))/((double)curBook.getDuration())*100.0));
+                        mediaControlBinder.seekTo(pos);
+
+                    } catch(FileNotFoundException e){
+                        e.printStackTrace();
+                    } catch(IOException e){
+                        e.printStackTrace();
+                    }finally {
+                        // close streams
+                        try {
+                            if (objectInputStream != null)
+                                objectInputStream.close();
+                            if(fileInputStream != null){
+                                fileInputStream.close();
+                            }
+                        } catch (IOException ignored) {
+                        }
+                    }
+                }
+            }.start();
+        }
     }
 
     @Override
-    public void download(Book curBook) {
+    public void download(final Book newBook) {
         // download book and save to file
 
-        final String download_link = "https://kamorris.com/lab/audlib/download.php?id=" + Integer.toString(curBook.getId());
+        final String download_link = "https://kamorris.com/lab/audlib/download.php?id=" + Integer.toString(newBook.getId());
         new Thread(){
             @Override
             public void run() {
-                super.run();
+                // path of our downloaded file
+                String path = getFilesDir() + "/" + String.valueOf(newBook.getId());
+
+                // input stream for web reading
                 InputStream in = null;
+                FileOutputStream fileOutputStream = null;
+
+                // connection object for webpage
                 HttpURLConnection con = null;
                 try {
+                    // create url from path
                     URL url = new URL(download_link);
+
+                    // open url
                     con = (HttpURLConnection) url.openConnection();
+
+                    // connect to webpage
                     con.connect();
 
                     // Check for success
                     if (con.getResponseCode() != HttpURLConnection.HTTP_OK) {
                         Log.d("MyApplication", "ERRROR: Server returned " + con.getResponseMessage());
+
                         return;
                     }
 
+                    // prepare output file to store download
+                    // get path
+                    File file = new File(path);
+
+                    // delete the file if it already exists
+                    if(file.exists()){
+                        file.delete();
+                    }
+
+                    // create a new file
+                    file.createNewFile();
+
+                    // set up the output stream
+                    fileOutputStream = new FileOutputStream(path, true);
+
                     // get the input stream for file
                     in = con.getInputStream();
+
+                    // wrtie the downloaded file to file
                     int count;
                     byte contents[] = new byte[4096];
                     while ((count = in.read(contents)) != -1) {
-                        Log.d("MyApplication", String.valueOf(count));
+                        Log.d("MyApplication", "Writing " + String.valueOf(count));
+                        fileOutputStream.write(contents, 0, count);
                     }
                     Log.d("MyApplication", "Obtained file");
                 } catch (Exception e) {
@@ -446,11 +618,16 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
                     return;
                 } finally {
                     try {
+                        // close open streams
                         if (in != null)
                             in.close();
+                        if(fileOutputStream != null){
+                            fileOutputStream.close();
+                        }
                     } catch (IOException ignored) {
                     }
 
+                    // close connection
                     if (con != null)
                         con.disconnect();
                 }
@@ -459,9 +636,26 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
     }
 
     @Override
-    public void delete(Book curBook) {
-        // delete book from file
+    public void delete(final Book deleteBook) {
+        new Thread(){
+            @Override
+            public void run() {
+                // delete book from file
+                // path of our downloaded file
+                String path = getFilesDir() + "/" + String.valueOf(deleteBook.getId());
 
+                // prepare output file to delete download
+                // get path
+                File file = new File(path);
+
+                // delete the file if it already exists
+                if(file.exists()){
+                    file.delete();
+                }
+
+                Log.d("MyApplication", deleteBook.getTitle() + " deleted.");
+            }
+        }.start();
     }
 
     @Override

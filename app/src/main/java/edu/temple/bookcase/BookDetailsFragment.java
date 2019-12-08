@@ -21,6 +21,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -135,7 +136,7 @@ public class BookDetailsFragment extends Fragment {
         parent = (PlayBookListener) context;
     }
 
-    public void displayBook(Book curbook){
+    public void displayBook(final Book curbook){
         // update what book is being displayed
         this.book = curbook;
 
@@ -152,6 +153,27 @@ public class BookDetailsFragment extends Fragment {
 
         // make playbutton visible
         bookImageView.setVisibility(View.VISIBLE);
+
+        final Context mainParent = (Context)parent;
+        new Thread(){
+            @Override
+            public void run() {
+                // path of our downloaded file
+                String path = mainParent.getFilesDir() + "/" + String.valueOf(curbook.getId());
+                File file = new File(path);
+
+                // check if downloaded file exists
+                if(file.exists()){
+                    // display delete button, hide download
+                    DeleteButton.setVisibility(View.VISIBLE);
+                    DownloadButton.setVisibility(View.INVISIBLE);
+                }else{
+                    // display download button, hide delete
+                    DeleteButton.setVisibility(View.INVISIBLE);
+                    DownloadButton.setVisibility(View.VISIBLE);
+                }
+            }
+        }.start();
 
         // read in the image through the URL and display the image
         url = book.getCoverURL();
@@ -189,15 +211,21 @@ public class BookDetailsFragment extends Fragment {
             public void onClick(View view) {
                 Log.d("MyApplication", "Downloading " + BookDetailsFragment.this.book.getTitle());
                 parent.download(BookDetailsFragment.this.book);
+                // display delete button, hide download
+                DeleteButton.setVisibility(View.VISIBLE);
+                DownloadButton.setVisibility(View.INVISIBLE);
             }
         });
 
         BookDetailsFragment.this.DeleteButton.setOnClickListener(new View.OnClickListener(){
-
             @Override
             public void onClick(View view) {
                 Log.d("MyApplication", "Deleting " + BookDetailsFragment.this.book.getTitle());
                 parent.delete(BookDetailsFragment.this.book);
+
+                // display download button, hide delete
+                DeleteButton.setVisibility(View.INVISIBLE);
+                DownloadButton.setVisibility(View.VISIBLE);
             }
         });
     }
