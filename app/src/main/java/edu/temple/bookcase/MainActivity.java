@@ -36,6 +36,7 @@ import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Array;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.Buffer;
@@ -59,6 +60,7 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
     boolean isBound;
     AudiobookService.MediaControlBinder mediaControlBinder;
     int pastBookProgress;
+    String storedSearch;
 
     public static final String CUR_BOOK_KEY = "book";
 
@@ -258,10 +260,55 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
         if(this.fragmentManager.getFragments().isEmpty()){
             // On first run of the app, get book list from online
             Log.d("MyApplication", "On Startup");
-            String urlString = "https://kamorris.com/lab/audlib/booksearch.php";
 
-            // create new fragments
-            obtainWebData(urlString, false);
+            // see if search string was already stored
+            new Thread() {
+                @Override
+                public void run() {
+                    // get path to our position file
+                    String path = getFilesDir() + "/search";
+                    File file = new File(path);
+
+                    Log.d("MyApplication", "finding search string");
+                    // delete the file if it already exists
+                    FileInputStream fileInputStream = null;
+                    ObjectInputStream objectInputStream = null;
+                    try {
+                        // set to default search if nothing
+                        if (!file.exists()) {
+                            storedSearch = "https://kamorris.com/lab/audlib/booksearch.php";
+                            return;
+                        }
+
+                        // set up output streams
+                        fileInputStream = new FileInputStream(path);
+                        objectInputStream = new ObjectInputStream(fileInputStream);
+
+                        // read the object from file
+                        storedSearch = (String) objectInputStream.readObject();
+                        Log.d("MyApplication", "Stored search books URL [" + storedSearch + "]");
+
+                        // create new fragments
+                        obtainWebData(storedSearch, false);
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (ClassNotFoundException e) {
+                        e.printStackTrace();
+                    } finally {
+                        // close open streams
+                        try {
+                            if (objectInputStream != null)
+                                objectInputStream.close();
+                            if(fileInputStream != null){
+                                fileInputStream.close();
+                            }
+                        } catch (IOException ignored) {
+                        }
+                    }
+                }
+            }.start();
         }else{
             // for subsequent runs, we use the fetched fragments stored in our fragment manager's fragment
             Log.d("MyApplication", "After Startup");
@@ -294,7 +341,7 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
                 Log.d("MyApplication", searchString);
 
                 // create the search URL with search text
-                String urlString;
+                final String urlString;
                 if(searchString == null){
                     urlString = "https://kamorris.com/lab/audlib/booksearch.php";
                 }else {
@@ -303,6 +350,53 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
 
                 // obtain the data from website and update the fragment rather than create new
                 obtainWebData(urlString,true);
+
+                // store the searched booklist
+                // create a thread to update our progress
+                new Thread() {
+                    @Override
+                    public void run() {
+                        // get path to our position file
+                        String path = getFilesDir() + "/search";
+                        File file = new File(path);
+
+                        Log.d("MyApplication", "storing search books");
+                        // delete the file if it already exists
+                        FileOutputStream fileOutputStream = null;
+                        ObjectOutputStream objectOutputStream = null;
+                        try {
+                            if (file.exists()) {
+                                file.delete();
+                            }
+
+                            file.createNewFile();
+
+                            Log.d("MyApplication", "file created");
+
+                            // set up output streams
+                            fileOutputStream = new FileOutputStream(path);
+                            objectOutputStream = new ObjectOutputStream(fileOutputStream);
+
+                            // write the search to file
+                            objectOutputStream.writeObject(urlString);
+                            Log.d("MyApplication", "Stored search books URL [" + urlString + "]");
+                        } catch (FileNotFoundException e) {
+                            e.printStackTrace();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        } finally {
+                            // close open streams
+                            try {
+                                if (objectOutputStream != null)
+                                    objectOutputStream.close();
+                                if(fileOutputStream != null){
+                                    fileOutputStream.close();
+                                }
+                            } catch (IOException ignored) {
+                            }
+                        }
+                    }
+                }.start();
             }
         });
 
