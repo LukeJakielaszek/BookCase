@@ -106,6 +106,8 @@ public class BookDetailsFragment extends Fragment {
 
             // make button invisible
             this.button.setVisibility(View.INVISIBLE);
+            this.DeleteButton.setVisibility(View.INVISIBLE);
+            this.DownloadButton.setVisibility(View.INVISIBLE);
         }
 
         return v;

@@ -430,6 +430,8 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
             public void onClick(View view) {
                 mediaControlBinder.stop();
 
+                setTitle(R.string.app_name);
+
                 new Thread(){
                     @Override
                     public void run() {
@@ -578,72 +580,72 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
         File file = new File(path);
 
         // check if the file has been downloaded
-        if(file.exists()){
+        if(file.exists()) {
             Log.d("MyApplication", "Playing " + curBook.getTitle() + " from file");
             mediaControlBinder.play(file);
+            // check if the position of the book has been stored
+            path = getFilesDir() + "/" + String.valueOf(curBook.getId()) + "pos";
+            Log.d("MyApplication", "Locating position at " + path);
+
+            // check if position file exists
+            file = new File(path);
+            Log.d("MyApplication", "checking if position file exists");
+            if (file.exists()) {
+                Log.d("MyApplication", "position file exists");
+                final File finalFile = file;
+                new Thread() {
+                    @Override
+                    public void run() {
+                        super.run();
+
+                        // give a brief pause to allow the audiobook service to start
+                        try {
+                            sleep(1000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+
+                        Log.d("MyApplication", "Running thread");
+
+                        // input streams
+                        FileInputStream fileInputStream = null;
+                        ObjectInputStream objectInputStream = null;
+
+                        try {
+                            // create input streams
+                            fileInputStream = new FileInputStream(finalFile);
+                            objectInputStream = new ObjectInputStream(fileInputStream);
+
+                            // read the stored position
+                            int pos = objectInputStream.readInt();
+                            Log.d("MyApplication", "Playing from position " + String.valueOf(pos));
+
+                            // set progress and seek to the position in service
+                            seekBar.setProgress((int) (((double) (pos)) / ((double) curBook.getDuration()) * 100.0));
+                            mediaControlBinder.seekTo(pos);
+
+                        } catch (FileNotFoundException e) {
+                            e.printStackTrace();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        } finally {
+                            // close streams
+                            try {
+                                if (objectInputStream != null)
+                                    objectInputStream.close();
+                                if (fileInputStream != null) {
+                                    fileInputStream.close();
+                                }
+                            } catch (IOException ignored) {
+                            }
+                        }
+                    }
+                }.start();
+            }
         }else {
             Log.d("MyApplication", "streaming " + curBook.getTitle() + " from web");
             // play the book
             mediaControlBinder.play(curBook.getId());
-        }
-
-        // check if the position of the book has been stored
-        path = getFilesDir() + "/" + String.valueOf(curBook.getId()) + "pos";
-        Log.d("MyApplication", "Locating position at " + path);
-
-        file = new File(path);
-        Log.d("MyApplication", "checking if position file exists");
-        if (file.exists()) {
-            Log.d("MyApplication", "position file exists");
-            final File finalFile = file;
-            new Thread() {
-                @Override
-                public void run() {
-                    super.run();
-
-                    // give a brief pause to allow the audiobook service to start
-                    try {
-                        sleep(1000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-
-                    Log.d("MyApplication", "Running thread");
-
-                    // input streams
-                    FileInputStream fileInputStream = null;
-                    ObjectInputStream objectInputStream = null;
-
-                    try {
-                        // create input streams
-                        fileInputStream = new FileInputStream(finalFile);
-                        objectInputStream = new ObjectInputStream(fileInputStream);
-
-                        // read the stored position
-                        int pos = objectInputStream.readInt();
-                        Log.d("MyApplication", "Playing from position " + String.valueOf(pos));
-
-                        // set progress and seek to the position in service
-                        seekBar.setProgress((int)(((double)(pos))/((double)curBook.getDuration())*100.0));
-                        mediaControlBinder.seekTo(pos);
-
-                    } catch(FileNotFoundException e){
-                        e.printStackTrace();
-                    } catch(IOException e){
-                        e.printStackTrace();
-                    }finally {
-                        // close streams
-                        try {
-                            if (objectInputStream != null)
-                                objectInputStream.close();
-                            if(fileInputStream != null){
-                                fileInputStream.close();
-                            }
-                        } catch (IOException ignored) {
-                        }
-                    }
-                }
-            }.start();
         }
     }
 
