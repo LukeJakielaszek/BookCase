@@ -258,7 +258,8 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
         this.fragmentManager = getSupportFragmentManager();
 
         if(this.fragmentManager.getFragments().isEmpty()){
-            // On first run of the app, get book list from online
+            // On first run of the app, get book list from online (this will either default to all
+            // books or the previous string the user searched)
             Log.d("MyApplication", "On Startup");
 
             // see if search string was already stored
@@ -274,7 +275,7 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
                     FileInputStream fileInputStream = null;
                     ObjectInputStream objectInputStream = null;
                     try {
-                        // set to default search if nothing
+                        // set to default search if nothing exists
                         if (!file.exists()) {
                             storedSearch = "https://kamorris.com/lab/audlib/booksearch.php";
                             return;
@@ -284,11 +285,11 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
                         fileInputStream = new FileInputStream(path);
                         objectInputStream = new ObjectInputStream(fileInputStream);
 
-                        // read the object from file
+                        // read the object from file (previous search string)
                         storedSearch = (String) objectInputStream.readObject();
                         Log.d("MyApplication", "Stored search books URL [" + storedSearch + "]");
 
-                        // create new fragments
+                        // create new fragments according to the users previously stored search string
                         obtainWebData(storedSearch, false);
                     } catch (FileNotFoundException e) {
                         e.printStackTrace();
@@ -333,6 +334,7 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
         this.searchButton = findViewById(R.id.button);
         this.searchText = findViewById(R.id.bookSearch);
 
+        // listener for our search button
         this.searchButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -351,20 +353,22 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
                 // obtain the data from website and update the fragment rather than create new
                 obtainWebData(urlString,true);
 
-                // store the searched booklist
+                // store the searched booklist in a file
                 // create a thread to update our progress
                 new Thread() {
                     @Override
                     public void run() {
-                        // get path to our position file
+                        // get path to our search file
                         String path = getFilesDir() + "/search";
                         File file = new File(path);
 
                         Log.d("MyApplication", "storing search books");
-                        // delete the file if it already exists
+
+                        // file streams
                         FileOutputStream fileOutputStream = null;
                         ObjectOutputStream objectOutputStream = null;
                         try {
+                            //delete the file if it already exists
                             if (file.exists()) {
                                 file.delete();
                             }
@@ -400,6 +404,7 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
             }
         });
 
+        // find our seek bar
         this.seekBar = findViewById(R.id.progressBar);
 
         new Thread(){
@@ -439,7 +444,7 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
                         String path = getFilesDir() + "/" + String.valueOf(curBook.getId()) + "pos";
                         File file = new File(path);
 
-                        // delete the file if it already exists
+                        // delete the file if it exists
                         if(file.exists()){
                             file.delete();
                         }
@@ -492,10 +497,11 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
         @Override
         public boolean handleMessage(@NonNull Message message) {
             // do nothing if nothing is playing (paused for example)
+            // we will save the timestamp of the audio book if paused
             if(message.obj == null){
                 Log.d("MyApplication", "Unable to update progress");
 
-                // if we should update our progress
+                // check if we should update our progress
                 if(pastBookProgress-10 > 0) {
 
                     // create a thread to update our progress
@@ -507,10 +513,12 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
                             File file = new File(path);
 
                             Log.d("MyApplication", "saving position at " + path);
-                            // delete the file if it already exists
+
+                            // our streams
                             FileOutputStream fileOutputStream = null;
                             ObjectOutputStream objectOutputStream = null;
                             try {
+                                // delete the file if it already exists
                                 if (!file.exists()) {
                                     // create a new file
                                     file.createNewFile();
@@ -538,9 +546,6 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
                                 } catch (IOException ignored) {
                                 }
                             }
-
-
-                            Log.d("MyApplication", curBook.getTitle() + " position updated to " + String.valueOf(pastBookProgress - 10));
                         }
                     }.start();
                 }
@@ -551,6 +556,7 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
             final AudiobookService.BookProgress bookProgress = (AudiobookService.BookProgress)message.obj;
             Log.d("MyApplication", "Setting Progress: " + String.valueOf(bookProgress.getProgress()) + " Out of " + String.valueOf(curBook.getDuration()));
 
+            // store the progress each time the service updates it
             pastBookProgress = bookProgress.getProgress();
 
             // find the percentage of the book we have listened to
@@ -571,8 +577,10 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
         // track the current book being played
         this.curBook = curBook;
 
+        // notify user of the playing book
         setTitle(getString(R.string.nowPlay) + " " + curBook.getTitle());
 
+        // set progress to zero
         this.seekBar.setProgress(0);
 
         // get path of file
@@ -581,8 +589,10 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
 
         // check if the file has been downloaded
         if(file.exists()) {
+            // play the book from the file at zero
             Log.d("MyApplication", "Playing " + curBook.getTitle() + " from file");
             mediaControlBinder.play(file);
+
             // check if the position of the book has been stored
             path = getFilesDir() + "/" + String.valueOf(curBook.getId()) + "pos";
             Log.d("MyApplication", "Locating position at " + path);
@@ -590,8 +600,11 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
             // check if position file exists
             file = new File(path);
             Log.d("MyApplication", "checking if position file exists");
+
             if (file.exists()) {
                 Log.d("MyApplication", "position file exists");
+
+                // store in final variable so thread can access it
                 final File finalFile = file;
                 new Thread() {
                     @Override
@@ -599,6 +612,14 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
                         super.run();
 
                         // give a brief pause to allow the audiobook service to start
+                        // then update the position since it is playing from file.
+                        // Technically, I could have just started it
+                        // from the position, rather than sleeping. However, this code was
+                        // origionally a workaround for Dr. Morris's failing service play function
+                        // that takes a book id and position. Therefore, using this technique, I could
+                        // stream a book from a stored position too rather than 0. I reverted it back
+                        // when seeing that the grading rubric requires streaming from zero as his
+                        // function does not work.
                         try {
                             sleep(1000);
                         } catch (InterruptedException e) {
@@ -653,6 +674,7 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
     public void download(final Book newBook) {
         // download book and save to file
 
+        // construct the download link
         final String download_link = "https://kamorris.com/lab/audlib/download.php?id=" + Integer.toString(newBook.getId());
         new Thread(){
             @Override
@@ -701,13 +723,14 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
                     // get the input stream for file
                     in = con.getInputStream();
 
-                    // wrtie the downloaded file to file
+                    // write the downloaded file to file
                     int count;
                     byte contents[] = new byte[4096];
                     while ((count = in.read(contents)) != -1) {
                         Log.d("MyApplication", "Writing " + String.valueOf(count));
                         fileOutputStream.write(contents, 0, count);
                     }
+                    
                     Log.d("MyApplication", "Obtained file");
                 } catch (Exception e) {
                     Log.d("MyApplication", e.toString());

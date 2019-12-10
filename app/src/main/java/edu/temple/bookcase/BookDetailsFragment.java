@@ -204,6 +204,7 @@ public class BookDetailsFragment extends Fragment {
             }
         });
 
+        // listener to check if download button was clicked
         BookDetailsFragment.this.DownloadButton.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view) {
@@ -215,6 +216,7 @@ public class BookDetailsFragment extends Fragment {
             }
         });
 
+        // listener to check if delete button was clicked
         BookDetailsFragment.this.DeleteButton.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view) {
