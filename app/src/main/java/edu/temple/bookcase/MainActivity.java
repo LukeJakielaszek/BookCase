@@ -730,7 +730,7 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
                         Log.d("MyApplication", "Writing " + String.valueOf(count));
                         fileOutputStream.write(contents, 0, count);
                     }
-                    
+
                     Log.d("MyApplication", "Obtained file");
                 } catch (Exception e) {
                     Log.d("MyApplication", e.toString());
